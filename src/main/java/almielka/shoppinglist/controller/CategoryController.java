@@ -11,77 +11,61 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Extension of {@link AbstractController}
+ * with explicitly defined the entity {@link Category} and the service {@link CategoryService},
+ * Service then called in the abstract constructor {@link AbstractController#AbstractController}
+ *
  * @author Anna S. Almielka
  */
 
 @RestController
 @RequestMapping(value = "/categories", produces = MediaType.APPLICATION_JSON_VALUE)
-public class CategoryController {
-
-    private CategoryService categoryService;
+public class CategoryController extends AbstractController<Category, CategoryService> {
 
     public CategoryController(CategoryService categoryService) {
-        this.categoryService = categoryService;
+        super(categoryService);
     }
 
     //create Category
+    @Override
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Category> createOne(@RequestBody Category newCategory) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.saveAndFlush(newCategory));
+        return super.createOne(newCategory);
     }
 
     //read Category by ID
+    @Override
     @GetMapping("/{id}")
     public ResponseEntity<Category> readOneById(@PathVariable Long id) {
-        Optional<Category> categoryOptional = categoryService.findById(id);
-        return categoryOptional.map(value -> ResponseEntity.status(HttpStatus.OK).body(value))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        return super.readOneById(id);
     }
 
     //read List Categories by Title containing
+    @Override
     @GetMapping("/search/{title}")
     public ResponseEntity<List<Category>> readListByTitleContaining(@PathVariable String title) {
-        List<Category> categories = categoryService.findByTitleContaining(title);
-        return checkCategoryList(categories);
+        return super.readListByTitleContaining(title);
     }
 
     //read All Categories order by Title ASC
+    @Override
     @GetMapping("/")
     public ResponseEntity<List<Category>> readAllOrderByTitleAsc() {
-        List<Category> categories = categoryService.findAllByOrderByTitleAsc();
-        return checkCategoryList(categories);
+        return super.readAllOrderByTitleAsc();
     }
 
     //update Category by ID
+    @Override
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Category> updateOneById(@PathVariable Long id, @RequestBody Category updateCategory) {
-        Optional<Category> categoryOptional = categoryService.findById(id);
-        if (categoryOptional.isPresent()) {
-            updateCategory.setId(categoryOptional.get().getId());
-            categoryService.saveAndFlush(updateCategory);
-            return ResponseEntity.status(HttpStatus.OK).body(updateCategory);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        return super.updateOneById(id, updateCategory);
     }
 
     //delete Category by ID
+    @Override
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOneById(@PathVariable Long id) {
-        try {
-            categoryService.deleteById(id);
-            return ResponseEntity.status(HttpStatus.OK).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-    }
-
-    private ResponseEntity<List<Category>> checkCategoryList(List<Category> categories) {
-        if (categories.size() > 0) {
-            return ResponseEntity.status(HttpStatus.OK).body(categories);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        return super.deleteOneById(id);
     }
 
 }
