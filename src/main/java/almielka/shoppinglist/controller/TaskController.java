@@ -6,7 +6,6 @@ import almielka.shoppinglist.domain.Task;
 import almielka.shoppinglist.service.BoardService;
 import almielka.shoppinglist.service.CategoryService;
 import almielka.shoppinglist.service.TaskService;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,71 +16,73 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Extension of {@link AbstractController}
+ * with explicitly defined the entity {@link Task} and the service {@link TaskService},
+ * Service then called in the abstract constructor {@link AbstractController#AbstractController}
+ *
  * @author Anna S. Almielka
  */
 
-
 @RestController
 @RequestMapping(value = "/tasks", produces = MediaType.APPLICATION_JSON_VALUE)
-public class TaskController {
+public class TaskController extends AbstractController<Task, TaskService> {
 
-    private TaskService taskService;
     private CategoryService categoryService;
     private BoardService boardService;
 
     public TaskController(TaskService taskService, CategoryService categoryService, BoardService boardService) {
-        this.taskService = taskService;
+        super(taskService);
         this.categoryService = categoryService;
         this.boardService = boardService;
     }
 
     //create Task
+    @Override
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Task> createOne(@RequestBody Task newTask) {
         Optional<Category> categoryOptional = categoryService.findById(newTask.getCategory().getId());
         Optional<Board> boardOptional = boardService.findById(newTask.getBoard().getId());
         if (categoryOptional.isPresent() && boardOptional.isPresent()) {
             newTask.setCreatedDate(Instant.now());
-            return ResponseEntity.status(HttpStatus.CREATED).body(taskService.saveAndFlush(newTask));
+            return super.createOne(newTask);
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-
     }
 
     //read Task by ID
+    @Override
     @GetMapping("/{id}")
     public ResponseEntity<Task> readOneById(@PathVariable Long id) {
-        Optional<Task> taskOptional = taskService.findById(id);
-        return taskOptional.map(value -> ResponseEntity.status(HttpStatus.OK).body(value))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        return super.readOneById(id);
     }
 
     //read List Tasks by Title Containing
+    @Override
     @GetMapping("/search/{title}")
     public ResponseEntity<List<Task>> readListByTitleContaining(@PathVariable String title) {
-        List<Task> tasks = taskService.findByTitleContaining(title);
-        return checkTaskList(tasks);
+        return super.readListByTitleContaining(title);
     }
 
     //read All Tasks order by Title ASC
+    @Override
     @GetMapping("/")
     public ResponseEntity<List<Task>> readAllOrderByTitleAsc() {
-        List<Task> tasks = taskService.findAllByOrderByTitleAsc();
-        return checkTaskList(tasks);
+        return super.readAllOrderByTitleAsc();
     }
 
     //read All Tasks order by Completed Date ASC
     @GetMapping("/order-by-completed-date/")
     public ResponseEntity<List<Task>> readAllOrderByCompletedDateAsc() {
-        List<Task> tasks = taskService.findAllByOrderByCompletedDateAsc();
+        List<Task> tasks = service.findAllByOrderByCompletedDateAsc();
         return checkTaskList(tasks);
     }
 
     //update Task by ID
+    @Override
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Task> updateOneById(@PathVariable Long id, @RequestBody Task updateTask) {
-        Optional<Task> taskOptional = taskService.findById(id);
+        Optional<Task> taskOptional = service.findById(id);
         if (taskOptional.isPresent()) {
             updateTask.setId(taskOptional.get().getId());
             updateTask.setCreatedDate(taskOptional.get().getCreatedDate());
@@ -92,7 +93,7 @@ public class TaskController {
             if (updateTask.getCompleted() != taskOptional.get().getCompleted()) {
                 isCompleted(updateTask);
             }
-            taskService.saveAndFlush(updateTask);
+            service.saveAndFlush(updateTask);
             return ResponseEntity.status(HttpStatus.OK).body(updateTask);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -100,14 +101,10 @@ public class TaskController {
     }
 
     //delete Task by ID
+    @Override
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOneById(@PathVariable Long id) {
-        try {
-            taskService.deleteById(id);
-            return ResponseEntity.status(HttpStatus.OK).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        return super.deleteOneById(id);
     }
 
     private ResponseEntity<List<Task>> checkTaskList(List<Task> tasks) {
@@ -123,4 +120,5 @@ public class TaskController {
             task.setCompletedDate(Instant.now());
         }
     }
+
 }

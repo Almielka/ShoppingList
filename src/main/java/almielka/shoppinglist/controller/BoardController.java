@@ -11,77 +11,61 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Extension of {@link AbstractController}
+ * with explicitly defined the entity {@link Board} and the service {@link BoardService},
+ * Service then called in the abstract constructor {@link AbstractController#AbstractController}
+ *
  * @author Anna S. Almielka
  */
 
 @RestController
 @RequestMapping(value = "/boards", produces = MediaType.APPLICATION_JSON_VALUE)
-public class BoardController {
-
-    private BoardService boardService;
+public class BoardController extends AbstractController<Board, BoardService> {
 
     public BoardController(BoardService boardService) {
-        this.boardService = boardService;
+        super(boardService);
     }
 
     //create Board
+    @Override
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Board> createOne(@RequestBody Board newBoard) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(boardService.saveAndFlush(newBoard));
+        return super.createOne(newBoard);
     }
 
     //read Board by ID
+    @Override
     @GetMapping("/{id}")
     public ResponseEntity<Board> readOneById(@PathVariable Long id) {
-        Optional<Board> boardOptional = boardService.findById(id);
-        return boardOptional.map(value -> ResponseEntity.status(HttpStatus.OK).body(value))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        return super.readOneById(id);
     }
 
     //read List Boards by Title containing
+    @Override
     @GetMapping("/search/{title}")
     public ResponseEntity<List<Board>> readListByTitleContaining(@PathVariable String title) {
-        List<Board> boards = boardService.findByTitleContaining(title);
-        return checkBoardList(boards);
+        return super.readListByTitleContaining(title);
     }
 
     //read All Boards by Title ASC
+    @Override
     @GetMapping("/")
     public ResponseEntity<List<Board>> readAllOrderByTitleAsc() {
-        List<Board> boards = boardService.findAllByOrderByTitleAsc();
-        return checkBoardList(boards);
+        return super.readAllOrderByTitleAsc();
     }
 
     //update Board by ID
+    @Override
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Board> updateOneById(@PathVariable Long id, @RequestBody Board updateBoard) {
-        Optional<Board> boardOptional = boardService.findById(id);
-        if (boardOptional.isPresent()) {
-            updateBoard.setId(boardOptional.get().getId());
-            boardService.saveAndFlush(updateBoard);
-            return ResponseEntity.status(HttpStatus.OK).body(updateBoard);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        return super.updateOneById(id, updateBoard);
     }
 
     //delete Board by ID
+    @Override
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOneById(@PathVariable Long id) {
-        try {
-            boardService.deleteById(id);
-            return ResponseEntity.status(HttpStatus.OK).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-    }
-
-    private ResponseEntity<List<Board>> checkBoardList(List<Board> boards) {
-        if (boards.size() > 0) {
-            return ResponseEntity.status(HttpStatus.OK).body(boards);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        return super.deleteOneById(id);
     }
 
 }
