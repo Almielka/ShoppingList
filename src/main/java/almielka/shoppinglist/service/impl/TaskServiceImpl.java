@@ -26,8 +26,8 @@ public class TaskServiceImpl extends AbstractServiceImpl<Task, TaskRepository>
     }
 
     @Override
-    public List<Task> findAllByOrderByCompletedDateAsc() {
-        return repository.findAllByOrderByCompletedDateAsc();
+    public List<Task> findAllCompletedOrderByCompletedDateAsc() {
+        return repository.findAllCompletedOrderByCompletedDateAsc();
     }
 
 }

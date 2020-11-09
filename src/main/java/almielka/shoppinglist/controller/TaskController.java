@@ -71,10 +71,10 @@ public class TaskController extends AbstractController<Task, TaskService> {
         return super.readAllOrderByTitleAsc();
     }
 
-    //read All Tasks order by Completed Date ASC
+    //read All completed Tasks order by Completed Date ASC
     @GetMapping("/order-by-completed-date/")
-    public ResponseEntity<List<Task>> readAllOrderByCompletedDateAsc() {
-        List<Task> tasks = service.findAllByOrderByCompletedDateAsc();
+    public ResponseEntity<List<Task>> readAllCompletedOrderByCompletedDateAsc() {
+        List<Task> tasks = service.findAllCompletedOrderByCompletedDateAsc();
         return checkTaskList(tasks);
     }
 

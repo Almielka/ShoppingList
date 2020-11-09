@@ -12,6 +12,6 @@ import java.util.List;
 
 public interface TaskService extends AbstractService<Task> {
 
-    List<Task> findAllByOrderByCompletedDateAsc();
+    List<Task> findAllCompletedOrderByCompletedDateAsc();
 
 }
